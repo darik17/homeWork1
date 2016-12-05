@@ -7,15 +7,17 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 
 public class Server {
     static Logger logger = Logger.getLogger(Client.class.getName());
-    static List<Worker> t = new ArrayList();
+    //static List<Worker> t = Collections.synchronizedList(new ArrayList<Worker>());
+    static CopyOnWriteArrayList<Worker> t = new CopyOnWriteArrayList<Worker>();
 
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(8888)) {
+        try  { ServerSocket serverSocket = new ServerSocket(8888);
             logger.info("Server start");
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -24,18 +26,20 @@ public class Server {
                 t.add(worker);
                 worker.start();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            logger.info("client disconnected");
         }
     }
     static class Worker extends Thread {
         Socket socket;
         String name;
-        List<Worker> t;
+        CopyOnWriteArrayList<Worker> t;
+        String str = "";
         BufferedReader reader = null;
         BufferedWriter writer = null;
 
-        public Worker(Socket socket, List<Worker> t) {
+        public Worker(Socket socket, CopyOnWriteArrayList<Worker> t) {
             this.socket = socket;
             this.t = t;
         }
@@ -48,10 +52,9 @@ public class Server {
                 writer.newLine();writer.flush();
                 name = reader.readLine();
                 writer.write("hi, " + name + "!");
-                writer.newLine(); writer.flush();
-                String str = "";
+                writer.newLine();writer.flush();
                 while (true) {
-                    str = reader.readLine();
+                    str=reader.readLine();
                     if (str.equalsIgnoreCase("exit"))
                         break;
                     for (Worker work : t) {
@@ -59,20 +62,17 @@ public class Server {
                         work.writer.newLine(); work.writer.flush();
                     }
                 }
-                writer.write("goodbye, "+name + "!");
-                writer.newLine(); writer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+                writer.write("goodbye, " + name + "!");
+                writer.newLine();
+                writer.flush();
+            }
+            catch (Exception e) {}
+            finally {
                 logger.info("client disconnected");
                 try {
                     socket.close();
-                    reader.close();
-                    writer.close();
                     t.remove(this);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception e) {}
             }
         }
     }

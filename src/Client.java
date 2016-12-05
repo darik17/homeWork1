@@ -17,7 +17,6 @@ public class Client {
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
-
         try {
             System.out.println(reader.readLine());
             writer.write(consoleReader.readLine());
@@ -34,7 +33,6 @@ public class Client {
                 writer.flush();
             }
             r.stopped();
-
         } catch (Exception e) {
             e.printStackTrace();
         }  finally {
@@ -43,8 +41,8 @@ public class Client {
             socket.close();
         }
     }
-    static class Resender extends Thread{
 
+    static class Resender extends Thread{
         Socket socket;
         private boolean stop;
         public Resender(Socket socket) {
